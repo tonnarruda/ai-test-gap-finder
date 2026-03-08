@@ -9,9 +9,13 @@ import (
 
 // DetectGaps identifica funções com branches sem teste correspondente (RF05).
 // testFuncs mapeia nome da função (ex: ValidateLogin) para lista de funções de teste (ex: TestValidateLogin_Valid).
+// Ignora a função "main" (entrypoint não é alvo de teste unitário).
 func DetectGaps(funcs []domain.ChangedFunction, testFuncs map[string][]string) []domain.Gap {
 	var gaps []domain.Gap
 	for _, cf := range funcs {
+		if cf.FuncName == "main" {
+			continue
+		}
 		tests := testFuncs[cf.FuncName]
 		hasEnoughTests := len(tests) >= len(cf.Branches) || len(cf.Branches) == 0
 		if hasEnoughTests {
