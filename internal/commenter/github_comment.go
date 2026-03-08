@@ -33,10 +33,15 @@ func FormatComment(result domain.AnalysisResult) string {
 			b.WriteString(fmt.Sprintf("- %s\n", s))
 		}
 		if len(g.Suggested) > 0 {
-			b.WriteString("\nSuggested tests:\n")
+			b.WriteString("\nSuggested test names:\n")
 			for _, t := range g.Suggested {
 				b.WriteString(fmt.Sprintf("- `%s`\n", t))
 			}
+		}
+		if g.AISuggestions != "" {
+			b.WriteString("\n**Sugestões da IA (casos de teste e código):**\n\n")
+			b.WriteString(g.AISuggestions)
+			b.WriteString("\n")
 		}
 		b.WriteString("\n")
 	}

@@ -43,8 +43,8 @@ type openAIResp struct {
 	} `json:"choices"`
 }
 
-// Suggest chama a OpenAI e parseia cenários sugeridos.
-func (e *OpenAIEngine) Suggest(ctx context.Context, fn domain.ChangedFunction, source string) ([]string, error) {
+// Suggest chama a OpenAI e retorna cenários + markdown (casos de teste e código).
+func (e *OpenAIEngine) Suggest(ctx context.Context, fn domain.ChangedFunction, source string) (*SuggestionResult, error) {
 	if len(fn.Branches) == 0 {
 		return nil, nil
 	}
@@ -78,5 +78,8 @@ func (e *OpenAIEngine) Suggest(ctx context.Context, fn domain.ChangedFunction, s
 		return nil, nil
 	}
 	content := strings.TrimSpace(out.Choices[0].Message.Content)
-	return ParseSuggestionsResponse(content), nil
+	return &SuggestionResult{
+		Scenarios: ParseSuggestionsResponse(content),
+		Markdown:  content,
+	}, nil
 }

@@ -24,8 +24,8 @@ func TestBuildPrompt_SingleFunc(t *testing.T) {
 }`
 	prompt := BuildPrompt(cf, src)
 	assert.Contains(t, prompt, "ValidateLogin")
-	assert.Contains(t, prompt, "Identify missing test scenarios")
-	assert.Contains(t, prompt, "Return a list of test cases")
+	assert.Contains(t, prompt, "cenários de teste que faltam")
+	assert.Contains(t, prompt, "código de teste em Go")
 	assert.Contains(t, prompt, src)
 }
 
@@ -33,7 +33,7 @@ func TestBuildPrompt_EmptyBranches(t *testing.T) {
 	cf := domain.ChangedFunction{File: "a.go", FuncName: "Foo", Branches: nil}
 	prompt := BuildPrompt(cf, "func Foo() {}")
 	assert.Contains(t, prompt, "Foo")
-	assert.Contains(t, prompt, "Identify missing test scenarios")
+	assert.Contains(t, prompt, "cenários de teste que faltam")
 }
 
 func TestParseSuggestionsResponse_List(t *testing.T) {

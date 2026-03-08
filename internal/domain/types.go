@@ -67,10 +67,11 @@ type TestInfo struct {
 
 // Gap representa uma lacuna de teste detectada.
 type Gap struct {
-	File       string
-	Function   string
-	Scenarios  []string
-	Suggested  []string
+	File          string
+	Function      string
+	Scenarios     []string
+	Suggested     []string   // nomes de testes sugeridos (ex: TestFunc_Scenario)
+	AISuggestions string     // texto markdown da IA: casos de teste e/ou código de exemplo
 }
 
 // AnalysisResult resultado da análise de test gaps.

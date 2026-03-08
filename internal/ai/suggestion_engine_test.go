@@ -17,9 +17,11 @@ func TestSuggestionEngine_Suggest_Mock(t *testing.T) {
 	}
 	src := "func ValidateLogin(user *User) error { if user == nil { return nil }; return nil }"
 	ctx := context.Background()
-	suggestions, err := engine.Suggest(ctx, cf, src)
+	result, err := engine.Suggest(ctx, cf, src)
 	require.NoError(t, err)
-	assert.NotEmpty(t, suggestions)
+	require.NotNil(t, result)
+	assert.NotEmpty(t, result.Scenarios)
+	assert.NotEmpty(t, result.Markdown)
 }
 
 func TestSuggestionEngine_Suggest_EmptyWhenNoBranches(t *testing.T) {
@@ -27,9 +29,9 @@ func TestSuggestionEngine_Suggest_EmptyWhenNoBranches(t *testing.T) {
 	cf := domain.ChangedFunction{File: "a.go", FuncName: "Foo", Branches: nil}
 	src := "func Foo() {}"
 	ctx := context.Background()
-	suggestions, err := engine.Suggest(ctx, cf, src)
+	result, err := engine.Suggest(ctx, cf, src)
 	require.NoError(t, err)
-	assert.Empty(t, suggestions)
+	assert.Nil(t, result)
 }
 
 func TestEnrichGapsWithAI_Mock(t *testing.T) {
@@ -44,4 +46,5 @@ func TestEnrichGapsWithAI_Mock(t *testing.T) {
 	enriched := EnrichGapsWithAI(ctx, engine, gaps, sourceByFile)
 	require.Len(t, enriched, 1)
 	assert.NotEmpty(t, enriched[0].Suggested)
+	assert.NotEmpty(t, enriched[0].AISuggestions)
 }
