@@ -55,11 +55,13 @@ func main() {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		go func() {
-			if err := pipeline.RunAndComment(nil, event.Repo.Owner, event.Repo.Name, event.PR.Number, event.PR.Head.SHA); err != nil {
-				log.Printf("pipeline error: %v", err)
-			}
-		}()
+		log.Printf("webhook: PR %s/%s #%d", event.Repo.Owner, event.Repo.Name, event.PR.Number)
+		if err := pipeline.RunAndComment(nil, event.Repo.Owner, event.Repo.Name, event.PR.Number, event.PR.Head.SHA); err != nil {
+			log.Printf("pipeline error: %v", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("comment posted: %s/%s #%d", event.Repo.Owner, event.Repo.Name, event.PR.Number)
 		w.WriteHeader(http.StatusOK)
 	})
 
