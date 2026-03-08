@@ -75,6 +75,7 @@ func (p *Pipeline) Run(ctx context.Context, owner, repo string, prNumber int, he
 			allFuncs = append(allFuncs, funcs...)
 		}
 	}
+	allFuncs = dedupeFunctions(allFuncs)
 	testFiles := testdetector.FindTestFiles(diff.Files)
 	testFuncs := make(map[string][]string)
 	for _, tf := range testFiles {
@@ -101,6 +102,20 @@ func (p *Pipeline) Run(ctx context.Context, owner, repo string, prNumber int, he
 		result.FunctionsAnalyzed = append(result.FunctionsAnalyzed, domain.AnalyzedFunction{File: cf.File, FuncName: cf.FuncName})
 	}
 	return result, nil
+}
+
+func dedupeFunctions(funcs []domain.ChangedFunction) []domain.ChangedFunction {
+	seen := make(map[string]bool)
+	var out []domain.ChangedFunction
+	for _, cf := range funcs {
+		key := cf.File + "\x00" + cf.FuncName
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, cf)
+	}
+	return out
 }
 
 // RunAndComment executa a análise e posta o comentário no PR.

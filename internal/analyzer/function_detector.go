@@ -32,8 +32,9 @@ func detectFunctionsInRange(filename, src string, startLine, endLine int) ([]dom
 			return true
 		}
 		pos := fset.Position(fn.Pos())
-		// declaração da função deve estar no intervalo
-		if pos.Line < startLine || pos.Line > endLine {
+		posEnd := fset.Position(fn.End())
+		// função entra se seu trecho (declaração até fim) sobrepõe o hunk
+		if posEnd.Line < startLine || pos.Line > endLine {
 			return true
 		}
 		cf := domain.ChangedFunction{
