@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"github.com/tonnarruda/ai-test-gap-finder/internal/ai"
@@ -124,6 +125,27 @@ func (p *Pipeline) RunAndComment(ctx context.Context, owner, repo string, prNumb
 	if err != nil {
 		return err
 	}
+	LogAnalysisResult(result)
 	body := commenter.FormatComment(*result)
 	return p.prClient.PostPRComment(owner, repo, prNumber, body)
+}
+
+// LogAnalysisResult registra no log arquivos/funções analisadas e sugestões da IA (para Render/logs).
+func LogAnalysisResult(result *domain.AnalysisResult) {
+	if result == nil {
+		return
+	}
+	log.Printf("[analysis] files changed: %d | functions analyzed: %d", result.FilesAnalyzed, result.FunctionsCount)
+	for _, f := range result.FunctionsAnalyzed {
+		log.Printf("[analysis] function: %s (file: %s)", f.FuncName, f.File)
+	}
+	for i, g := range result.Gaps {
+		log.Printf("[gap %d] %s (%s) | scenarios: %s", i+1, g.Function, g.File, strings.Join(g.Scenarios, ", "))
+		if len(g.Suggested) > 0 {
+			log.Printf("[gap %d] suggested test names: %s", i+1, strings.Join(g.Suggested, ", "))
+		}
+		if g.AISuggestions != "" {
+			log.Printf("[gap %d] AI suggestions:\n%s", i+1, g.AISuggestions)
+		}
+	}
 }
