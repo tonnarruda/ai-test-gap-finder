@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ai-test-gap-finder
+    runtime: go
+    buildCommand: go build -ldflags '-s -w' -o server ./cmd/server
+    startCommand: ./server
+    envVars:
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_WEBHOOK_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
