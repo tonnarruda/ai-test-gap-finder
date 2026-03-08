@@ -13,7 +13,14 @@ func FormatComment(result domain.AnalysisResult) string {
 	b.WriteString("## AI Test Gap Finder\n\n")
 	b.WriteString("### Analysis Summary\n\n")
 	b.WriteString(fmt.Sprintf("- Files changed: %d\n", result.FilesAnalyzed))
-	b.WriteString(fmt.Sprintf("- Functions analyzed: %d\n\n", result.FunctionsCount))
+	b.WriteString(fmt.Sprintf("- Functions analyzed: %d\n", result.FunctionsCount))
+	if len(result.FunctionsAnalyzed) > 0 {
+		b.WriteString("\nFunctions:\n")
+		for _, f := range result.FunctionsAnalyzed {
+			b.WriteString(fmt.Sprintf("- **%s** (`%s`)\n", f.FuncName, f.File))
+		}
+		b.WriteString("\n")
+	}
 	if len(result.Gaps) == 0 {
 		b.WriteString("✅ No potential test gaps detected.\n")
 		return b.String()

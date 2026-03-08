@@ -75,7 +75,14 @@ type Gap struct {
 
 // AnalysisResult resultado da análise de test gaps.
 type AnalysisResult struct {
-	FilesAnalyzed   int
-	FunctionsCount  int
-	Gaps            []Gap
+	FilesAnalyzed     int
+	FunctionsCount    int
+	FunctionsAnalyzed []AnalyzedFunction
+	Gaps              []Gap
+}
+
+// AnalyzedFunction identifica uma função analisada (arquivo + nome).
+type AnalyzedFunction struct {
+	File     string
+	FuncName string
 }

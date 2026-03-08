@@ -92,9 +92,13 @@ func (p *Pipeline) Run(ctx context.Context, owner, repo string, prNumber int, he
 		gaps = ai.EnrichGapsWithAI(ctx, p.aiEngine, gaps, sourceByFile)
 	}
 	result := &domain.AnalysisResult{
-		FilesAnalyzed:   len(sourceFiles),
-		FunctionsCount:  len(allFuncs),
-		Gaps:            gaps,
+		FilesAnalyzed:     len(sourceFiles),
+		FunctionsCount:    len(allFuncs),
+		FunctionsAnalyzed: make([]domain.AnalyzedFunction, 0, len(allFuncs)),
+		Gaps:              gaps,
+	}
+	for _, cf := range allFuncs {
+		result.FunctionsAnalyzed = append(result.FunctionsAnalyzed, domain.AnalyzedFunction{File: cf.File, FuncName: cf.FuncName})
 	}
 	return result, nil
 }

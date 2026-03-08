@@ -11,6 +11,10 @@ func TestFormatComment(t *testing.T) {
 	result := domain.AnalysisResult{
 		FilesAnalyzed:  4,
 		FunctionsCount: 7,
+		FunctionsAnalyzed: []domain.AnalyzedFunction{
+			{File: "user_service.go", FuncName: "ValidateLogin"},
+			{File: "pkg/handler.go", FuncName: "ParseRequest"},
+		},
 		Gaps: []domain.Gap{
 			{
 				File:      "user_service.go",
@@ -24,6 +28,9 @@ func TestFormatComment(t *testing.T) {
 	assert.Contains(t, body, "AI Test Gap Finder")
 	assert.Contains(t, body, "Files changed: 4")
 	assert.Contains(t, body, "Functions analyzed: 7")
+	assert.Contains(t, body, "**ValidateLogin**")
+	assert.Contains(t, body, "user_service.go")
+	assert.Contains(t, body, "**ParseRequest**")
 	assert.Contains(t, body, "ValidateLogin")
 	assert.Contains(t, body, "empty password")
 	assert.Contains(t, body, "user not found")
