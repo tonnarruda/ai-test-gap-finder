@@ -86,30 +86,28 @@ Se nada aparecer:
 | GitHub → Repo → Settings → Webhooks | URL = `https://SUA-URL/webhook`, evento **Pull requests** |
 | Repo | Abrir um PR com mudança em `.go` → comentário deve aparecer no PR |
 
-## Deploy no Render
+## Deploy no Render (plano gratuito)
 
-1. **Suba o código** para um repositório no GitHub (se ainda não estiver).
+Use **Web Service** (não precisa de Blueprint, que é pago).
 
-2. No [Render Dashboard](https://dashboard.render.com/), **New** → **Blueprint**. Conecte o repositório do projeto.
-
-3. O Render detecta o `render.yaml` na raiz e cria o Web Service. Confirme:
+1. No [Render Dashboard](https://dashboard.render.com/), **New +** → **Web Service**.
+2. Conecte o repositório **tonnarruda/ai-test-gap-finder**.
+3. O Render detecta Go e cria o serviço. Em **Settings** → **Build & Deploy** altere para:
    - **Build Command:** `go build -ldflags '-s -w' -o server ./cmd/server`
-   - **Start Command:** `./server`
-
-4. Em **Environment** do serviço, adicione as variáveis (os valores não vão no repositório):
+   - **Start Command:** `./server`  
+   (O padrão compila a raiz do repo e dá erro; o `main` está em `cmd/server`.)
+4. Em **Environment**, adicione:
    - `GITHUB_TOKEN` — seu Personal Access Token com scope **repo**
-   - `GITHUB_WEBHOOK_SECRET` — o mesmo secret que você configurar no webhook do GitHub
+   - `GITHUB_WEBHOOK_SECRET` — o mesmo valor que você vai usar no webhook do GitHub
    - `OPENAI_API_KEY` — (opcional) chave da OpenAI
-
-5. Faça o **deploy**. Quando terminar, anote a URL do serviço (ex: `https://ai-test-gap-finder-xxx.onrender.com`).
-
-6. No GitHub, em **Settings** → **Webhooks** do repositório, configure:
-   - **Payload URL:** `https://SUA-URL-RENDER.onrender.com/webhook`
+5. Salve e faça o **deploy**. Anote a URL (ex: `https://ai-test-gap-finder-xxx.onrender.com`).
+6. No GitHub, **Settings** → **Webhooks** do repositório:
+   - **Payload URL:** `https://SUA-URL.onrender.com/webhook`
    - **Content type:** `application/json`
-   - **Secret:** o mesmo valor de `GITHUB_WEBHOOK_SECRET`
+   - **Secret:** o mesmo de `GITHUB_WEBHOOK_SECRET`
    - Eventos: **Pull requests**
 
-O Render define `PORT` automaticamente; não é preciso configurar.
+O Render define `PORT` automaticamente.
 
 ## Testes
 

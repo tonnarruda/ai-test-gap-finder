@@ -1,5 +1,6 @@
 .env
 *.exe
 /server
+/app
 /bin/
 /vendor/
