@@ -53,28 +53,26 @@ func (p *Pipeline) Run(ctx context.Context, owner, repo string, prNumber int, he
 	if len(sourceFiles) == 0 {
 		return &domain.AnalysisResult{FilesAnalyzed: 0, FunctionsCount: 0, Gaps: nil}, nil
 	}
-	fileHunks := analyzer.ChangedLinesFromFiles(diff.Files)
 	sourceByFile := make(map[string]string)
 	for _, f := range sourceFiles {
 		content, _ := p.prClient.GetFileContent(owner, repo, headSHA, f.Filename)
 		sourceByFile[f.Filename] = content
 	}
 	var allFuncs []domain.ChangedFunction
-	for _, fh := range fileHunks {
-		if strings.HasSuffix(fh.Filename, "_test.go") {
+	for _, f := range sourceFiles {
+		if strings.HasSuffix(f.Filename, "_test.go") {
 			continue
 		}
-		src := sourceByFile[fh.Filename]
+		src := sourceByFile[f.Filename]
 		if src == "" {
 			continue
 		}
-		for _, hunk := range fh.Hunks {
-			funcs, err := analyzer.DetectFunctionsInRange(fh.Filename, src, hunk.StartLine, hunk.EndLine)
-			if err != nil {
-				continue
-			}
-			allFuncs = append(allFuncs, funcs...)
+		funcs, err := analyzer.DetectFunctions(f.Filename, src)
+		if err != nil {
+			// Não falhamos o pipeline por erro em um arquivo específico.
+			continue
 		}
+		allFuncs = append(allFuncs, funcs...)
 	}
 	allFuncs = dedupeFunctions(allFuncs)
 	testFiles := testdetector.FindTestFiles(diff.Files)
@@ -93,8 +91,12 @@ func (p *Pipeline) Run(ctx context.Context, owner, repo string, prNumber int, he
 	if p.aiEngine != nil {
 		gaps = ai.EnrichGapsWithAI(ctx, p.aiEngine, gaps, sourceByFile)
 	}
+	filesSet := make(map[string]struct{})
+	for _, cf := range allFuncs {
+		filesSet[cf.File] = struct{}{}
+	}
 	result := &domain.AnalysisResult{
-		FilesAnalyzed:     len(sourceFiles),
+		FilesAnalyzed:     len(filesSet),
 		FunctionsCount:    len(allFuncs),
 		FunctionsAnalyzed: make([]domain.AnalyzedFunction, 0, len(allFuncs)),
 		Gaps:              gaps,
