@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/tonnarruda/ai-test-gap-finder/internal/domain"
+	"github.com/tonnarruda/ai-test-gap-finder/internal/lang"
 )
 
-// FindTestFiles retorna apenas arquivos *_test.go da lista (RF04).
+// FindTestFiles retorna arquivos de teste em qualquer linguagem suportada (RF04).
 func FindTestFiles(files []domain.FileChange) []domain.FileChange {
 	var out []domain.FileChange
 	for _, f := range files {
-		if strings.HasSuffix(f.Filename, "_test.go") {
+		if lang.IsTestFile(f.Filename) {
 			out = append(out, f)
 		}
 	}

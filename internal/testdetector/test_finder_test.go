@@ -29,6 +29,25 @@ func TestFindTestFiles_Mixed(t *testing.T) {
 	assert.Equal(t, "pkg/other_test.go", out[1].Filename)
 }
 
+func TestFindTestFiles_MultiLang(t *testing.T) {
+	files := []domain.FileChange{
+		{Filename: "service.py"},
+		{Filename: "test_service.py"},
+		{Filename: "user_spec.rb"},
+		{Filename: "handler.go"},
+		{Filename: "handler_test.go"},
+	}
+	out := FindTestFiles(files)
+	require.Len(t, out, 3)
+	names := make([]string, len(out))
+	for i := range out {
+		names[i] = out[i].Filename
+	}
+	assert.Contains(t, names, "test_service.py")
+	assert.Contains(t, names, "user_spec.rb")
+	assert.Contains(t, names, "handler_test.go")
+}
+
 func TestFindRelatedTestFuncs_ByPrefix(t *testing.T) {
 	src := `package pkg
 func TestValidateLogin_Valid(t *testing.T) {}

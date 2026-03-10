@@ -10,6 +10,7 @@ import (
 	"github.com/tonnarruda/ai-test-gap-finder/internal/commenter"
 	"github.com/tonnarruda/ai-test-gap-finder/internal/domain"
 	"github.com/tonnarruda/ai-test-gap-finder/internal/github"
+	"github.com/tonnarruda/ai-test-gap-finder/internal/lang"
 	"github.com/tonnarruda/ai-test-gap-finder/internal/testdetector"
 )
 
@@ -48,41 +49,51 @@ func (p *Pipeline) Run(ctx context.Context, owner, repo string, prNumber int, he
 	if err != nil {
 		return nil, err
 	}
-	goFiles := github.FilterGoFiles(diff.Files)
-	sourceFiles := analyzer.FilterGoSourceFiles(goFiles)
-	if len(sourceFiles) == 0 {
+	codeFiles := lang.FilterCodeFiles(diff.Files)
+	if len(codeFiles) == 0 {
 		return &domain.AnalysisResult{FilesAnalyzed: 0, FunctionsCount: 0, Gaps: nil}, nil
 	}
 	sourceByFile := make(map[string]string)
-	for _, f := range sourceFiles {
+	for _, f := range codeFiles {
 		content, _ := p.prClient.GetFileContent(owner, repo, headSHA, f.Filename)
 		sourceByFile[f.Filename] = content
 	}
 	var allFuncs []domain.ChangedFunction
-	for _, f := range sourceFiles {
-		if strings.HasSuffix(f.Filename, "_test.go") {
-			continue
-		}
+	for _, f := range codeFiles {
 		src := sourceByFile[f.Filename]
 		if src == "" {
 			continue
 		}
-		funcs, err := analyzer.DetectFunctions(f.Filename, src)
-		if err != nil {
-			// Não falhamos o pipeline por erro em um arquivo específico.
-			continue
+		if strings.HasSuffix(f.Filename, ".go") && !strings.HasSuffix(f.Filename, "_test.go") {
+			funcs, err := analyzer.DetectFunctions(f.Filename, src)
+			if err != nil {
+				continue
+			}
+			allFuncs = append(allFuncs, funcs...)
+		} else {
+			unitName := lang.FileUnitName(f.Filename)
+			allFuncs = append(allFuncs, domain.ChangedFunction{
+				File:     f.Filename,
+				FuncName: unitName,
+				Branches: nil,
+			})
 		}
-		allFuncs = append(allFuncs, funcs...)
 	}
 	allFuncs = dedupeFunctions(allFuncs)
 	testFiles := testdetector.FindTestFiles(diff.Files)
 	testFuncs := make(map[string][]string)
 	for _, tf := range testFiles {
+		if !strings.HasSuffix(tf.Filename, "_test.go") {
+			continue
+		}
 		content, _ := p.prClient.GetFileContent(owner, repo, headSHA, tf.Filename)
 		if content == "" {
 			content = tf.Patch
 		}
 		for _, cf := range allFuncs {
+			if !strings.HasSuffix(cf.File, ".go") || strings.HasSuffix(cf.File, "_test.go") {
+				continue
+			}
 			related := testdetector.FindRelatedTestFuncs(tf.Filename, content, cf.FuncName)
 			testFuncs[cf.FuncName] = append(testFuncs[cf.FuncName], related...)
 		}
