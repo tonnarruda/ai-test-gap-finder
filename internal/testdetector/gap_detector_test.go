@@ -14,7 +14,9 @@ func TestDetectGaps_NoBranches(t *testing.T) {
 	}
 	testFuncs := map[string][]string{}
 	gaps := DetectGaps(funcs, testFuncs)
-	require.Len(t, gaps, 0)
+	require.Len(t, gaps, 1)
+	assert.Equal(t, "a.go", gaps[0].File)
+	assert.Equal(t, "Foo", gaps[0].Function)
 }
 
 func TestDetectGaps_BranchWithoutTest(t *testing.T) {

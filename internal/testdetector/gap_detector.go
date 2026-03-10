@@ -17,7 +17,12 @@ func DetectGaps(funcs []domain.ChangedFunction, testFuncs map[string][]string) [
 			continue
 		}
 		tests := testFuncs[cf.FuncName]
-		hasEnoughTests := len(tests) >= len(cf.Branches) || len(cf.Branches) == 0
+		required := len(cf.Branches)
+		if required == 0 {
+			// Mesmo sem branches explícitos, exigimos pelo menos 1 teste básico.
+			required = 1
+		}
+		hasEnoughTests := len(tests) >= required
 		if hasEnoughTests {
 			continue
 		}
